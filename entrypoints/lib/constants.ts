@@ -2,6 +2,8 @@ import { getEditUrl, iconBoardId } from "./ruli-constants.ts"
 
 export const articlePostDelayMs = 400
 
+export const requestTimeout = 5_000
+
 // @TODO remove hardcoded path
 export const chromeExec = "C:/Program Files/Google/Chrome Beta/Application/chrome.exe"
 
@@ -18,3 +20,4 @@ export const contentSample = `
 export const gridStyle = `display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; border: 2px solid Pink; background-color: White; padding: 2px; box-sizing: border-box;`
 
 export const splitNum = 96
+

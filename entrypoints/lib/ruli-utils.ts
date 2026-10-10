@@ -1,4 +1,4 @@
-import { articlePostDelayMs } from "./constants.ts"
+import { articlePostDelayMs, requestTimeout } from "./constants.ts"
 import {
   getEditUrl,
   getIconImagesUrl,
@@ -59,6 +59,7 @@ export async function readArticle(boardId: number, articleId: number, isMobile =
   const requestURL = getViewUrl(boardId, articleId, isMobile)
 
   const viewRequest = await fetch(requestURL, {
+    signal: AbortSignal.timeout(requestTimeout),
     method: "get",
     mode: "cors",
     redirect: "follow",
@@ -70,7 +71,7 @@ export async function readArticle(boardId: number, articleId: number, isMobile =
 
   const selector = isMobile ?
     ".board_main > .board_main_view article > div:first-of-type" :
-    ".board_main > .board_main_view .view_content > article > div"
+    ".board_main > .board_main_view > .view_content > article > div"
 
   const contentDiv = dom.querySelector(selector)
   if (contentDiv == null) {
@@ -155,6 +156,7 @@ export async function writeArticle(
     const articleBody = new URLSearchParams(toStringMap(article))
 
     const writeRequest = await fetch(requestURL, {
+      signal: AbortSignal.timeout(requestTimeout),
       method: "POST",
       mode: "cors",
       redirect: "follow",
@@ -201,6 +203,7 @@ export async function writeArticle(
 
 async function requestGet<T>(url: string) {
   const rawRequest = await fetch(url, {
+    signal: AbortSignal.timeout(requestTimeout),
     method: "get",
     mode: "cors",
     redirect: "follow",
@@ -402,6 +405,7 @@ export async function removeFavoriteIconSet(iconId: number) {
   })
 
   const rawRequest = await fetch(removeFavorIconUrl, {
+    signal: AbortSignal.timeout(requestTimeout),
     method: "post",
     mode: "cors",
     credentials: "include",
