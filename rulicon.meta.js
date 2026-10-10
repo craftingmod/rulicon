@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Rulicon
 // @namespace rulicon
-// @version 0.0.3
+// @version 0.1.0
 // @description Ruliweb icon extension
 // @homepage https://github.com/craftingmod/rulicon
 // @downloadURL https://cdn.jsdelivr.net/gh/craftingmod/rulicon@userscript/rulicon.user.js
