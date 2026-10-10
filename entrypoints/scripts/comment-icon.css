@@ -189,9 +189,9 @@
   justify-content: center;
 }
 .ruricon-preset-strip[data-mobile="true"] {
+  justify-content: flex-start;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  justify-content: start;
 }
 .ruricon-icon-view .ruricon-preset-shortcut {
   display: flex;
