@@ -1235,6 +1235,7 @@ async function check() {
       'app.comment_icon(this.parentElement.querySelector(".comment_icon"), null, "preset");',
     )
     button.after(presetButton)
+    if (location.hostname === "m.ruliweb.com") comment.style.maxWidth = "240px"
     let mountedView: Element | null = null
     for (const [target, tab, visible] of [
       [button, "전체", true],
@@ -1272,6 +1273,21 @@ async function check() {
           "Toolbar and icon list start collapsed",
         )
         await waitFor(() => view.getAttribute("aria-busy") === "false")
+        if (location.hostname === "m.ruliweb.com") {
+          const strip = container.querySelector<HTMLElement>(".ruricon-preset-strip")!
+          strip.scrollLeft = 0
+          assert(strip.scrollWidth > strip.clientWidth, "Mobile shortcuts overflow the narrow view")
+          assert(
+            Math.abs(
+              strip.firstElementChild!.getBoundingClientRect().left -
+                strip.getBoundingClientRect().left,
+            ) < 1,
+            "The first shortcut is visible at the leftmost scroll position",
+          )
+          strip.scrollLeft = strip.scrollWidth
+          assert(strip.scrollLeft > 0, "Mobile shortcuts still scroll to later buttons")
+          strip.scrollLeft = 0
+        }
         await choose("Native", container)
         await waitFor(() => view.getAttribute("aria-busy") === "false")
         await waitFor(() => grid.querySelector("img") !== null)
