@@ -10,7 +10,7 @@ const cacheTest = process.argv.includes("--cache")
 const port = 5187
 const url = process.argv.includes("--cache")
   ? `http://127.0.0.1:${port}/tests/icon-cache.html`
-  : `http://127.0.0.1:${port}/tests/comment-icon-view.html${process.argv.includes("--editor") ? "?editor" : process.argv.includes("--preset-dialog") ? "?preset-dialog" : process.argv.includes("--image-preset") ? "?image-preset" : ""}`
+  : `http://127.0.0.1:${port}/tests/comment-icon-view.html${process.argv.includes("--native-buttons") ? "?native-buttons" : process.argv.includes("--editor") ? "?editor" : process.argv.includes("--preset-dialog") ? "?preset-dialog" : process.argv.includes("--image-preset") ? "?image-preset" : ""}`
 const server = spawn(
   process.execPath,
   [

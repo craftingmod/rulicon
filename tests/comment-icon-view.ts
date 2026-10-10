@@ -1221,6 +1221,61 @@ async function check() {
     result.dataset.result = "PASS"
     return
   }
+  if (location.search === "?native-buttons") {
+    const comment = document.querySelector<HTMLElement>("#comment")!
+    const button = comment.querySelector<HTMLButtonElement>("button[onclick]")!
+    const container = comment.querySelector<HTMLElement>(".comment_icon")!
+    const presetButton = button.cloneNode(true) as HTMLButtonElement
+    button.setAttribute(
+      "onclick",
+      "app.comment_icon(this.parentElement.querySelector('.comment_icon'), null, 'first');",
+    )
+    presetButton.setAttribute(
+      "onclick",
+      'app.comment_icon(this.parentElement.querySelector(".comment_icon"), null, "preset");',
+    )
+    button.after(presetButton)
+    let mountedView: Element | null = null
+    for (const [target, tab, visible] of [
+      [button, "전체", true],
+      [button, "전체", false],
+      [button, "전체", true],
+      [presetButton, "개인 저장소", true],
+      [presetButton, "개인 저장소", false],
+      [button, "전체", true],
+      [presetButton, "개인 저장소", true],
+      [button, "전체", true],
+    ] as const) {
+      void act(() => target.click())
+      await tick()
+      await waitFor(
+        () =>
+          container.hidden === !visible &&
+          container.style.display === (visible ? "block" : "none") &&
+          container
+            .querySelector(`.ruricon-icon-tabs button[aria-label="${tab}"]`)
+            ?.getAttribute("aria-pressed") === "true",
+      )
+      const view = container.querySelector(".ruricon-icon-view")!
+      if (mountedView) assert(view === mountedView, "Toggling preserves the mounted view")
+      mountedView = view
+    }
+    click('.ruricon-icon-tabs button[aria-label="개인 저장소"]', container)
+    await tick()
+    void act(() => presetButton.click())
+    await tick()
+    assert(container.style.display === "none", "Toggle compares the actual manually selected tab")
+    assert(nativeCalls === 0, "Both button types suppress native inline handlers")
+    assert(
+      requests.some((url) => url.includes("type=preset")),
+      "Preset button loads storage",
+    )
+    void act(cleanup)
+    result.textContent =
+      "PASS: first/preset buttons switch tabs and hide the same mode without unmount"
+    result.dataset.result = "PASS"
+    return
+  }
   assert(getLastId("app.icon_data_show(this, 5033);") === 5033, "Numeric ID isn't truncated")
   assert(getLastId("app.icon_data_show(this, '5033');") === 5033, "Quoted ID")
   assert(getLastId("bad") === null, "Invalid ID")

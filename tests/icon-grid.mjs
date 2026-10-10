@@ -10,10 +10,19 @@ const state = {
 }
 assert.equal(iconGridPage(state), 0)
 // Six columns: index 100 shares the row beginning at 96.
-assert.equal(iconGridPage({ ...state, scrollTop: 16 * 105 }), 0)
-assert.equal(iconGridPage({ ...state, scrollTop: 17 * 105 - 6 }), 0)
-assert.equal(iconGridPage({ ...state, scrollTop: 17 * 105 - 5 }), 1)
+assert.equal(iconGridPage({ ...state, scrollTop: 16 * 105 - 7 }), 0)
+assert.equal(iconGridPage({ ...state, scrollTop: 16 * 105 - 6 }), 1)
+assert.equal(iconGridPage({ ...state, scrollTop: 16 * 105 - 5 }), 1)
+assert.equal(iconGridPage({ ...state, scrollTop: 16 * 105 }), 1)
 assert.equal(iconGridPage({ ...state, scrollTop: 17 * 105 }), 1)
+// Eight columns: count the full row beginning at 96 as 104 icons.
+const eightColumns = { ...state, viewport: { width: 835, height: 400 } }
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 11 * 105 }), 0)
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 12 * 105 - 7 }), 0)
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 12 * 105 - 6 }), 1)
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 12 * 105 - 1 }), 1)
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 12 * 105 }), 1)
+assert.equal(iconGridPage({ ...eightColumns, scrollTop: 24 * 105 }), 2)
 // A short final page cannot force its indicator while earlier icons remain at the top.
 assert.equal(iconGridPage({ ...state, scrollTop: 35 * 105 - 5 - state.viewport.height }), 1)
 assert.equal(
