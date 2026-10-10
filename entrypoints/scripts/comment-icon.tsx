@@ -864,6 +864,7 @@ function IconView({
   return createPortal(
     <section
       class="ruricon-icon-view"
+      data-mode={mode}
       data-mobile={String(location.hostname === mobileDomain)}
       data-edit-mode={String(editMode)}
       aria-label="아이콘 선택"
@@ -1118,7 +1119,9 @@ export function openRuriconIconView(container: HTMLElement, toggle = true, mode?
     if (host !== container) container.append(host)
     ownedContainers.set(container, host)
   }
-  appRef.current!.open(container, host, toggle, mode)
+  const sameMode =
+    !mode || host.querySelector(".ruricon-icon-view")?.getAttribute("data-mode") === mode
+  appRef.current!.open(container, host, toggle && sameMode, mode)
 }
 
 function editorIconReady() {
@@ -1202,7 +1205,12 @@ export function mountCommentIconHook() {
       typeof HTMLDialogElement === "undefined"
     )
       return
-    openRuriconIconView(container)
+    const type = nativeButton.getAttribute("onclick")?.match(/,\s*(['"])(first|preset)\1\s*\)/)?.[2]
+    openRuriconIconView(
+      container,
+      true,
+      type === "preset" ? "imagePreset" : type === "first" ? "all" : undefined,
+    )
     event.preventDefault()
     event.stopImmediatePropagation()
   }
