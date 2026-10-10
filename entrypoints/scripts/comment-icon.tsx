@@ -911,7 +911,7 @@ function IconView({
               !ready
                 ? "프리셋 불러오는 중…"
                 : collection
-                  ? `${collection.title} - ${allImages.length}개`
+                  ? collection.title
                   : (selected?.title ?? "프리셋 선택")
             }
           />

@@ -84,6 +84,7 @@ export function PresetDialog({
   const modal = useRef<HTMLDialogElement>(null)
   const search = useRef<HTMLInputElement>(null)
   const list = useRef<HTMLDivElement>(null)
+  const initialSelection = useRef<{ id: number | null } | null>(null)
   const scrollToRestore = useRef<number | null>(null)
   const focusToRestore = useRef<HTMLElement | null>(null)
   const presets = orderPresets(
@@ -98,6 +99,12 @@ export function PresetDialog({
   const currentPreview = preview?.id === selectedId ? preview : null
   const articleUrl = (preset: Preset) =>
     getViewUrl(iconBoardId, preset.mainId ?? preset.id, location.hostname === mobileDomain)
+
+  function applyPreset(preset: Preset) {
+    if (deletePending.current || hiddenPresetIds.includes(preset.id)) return
+    dismiss()
+    request.choose(preset)
+  }
 
   function preserveListScroll(action: () => void) {
     scrollToRestore.current = list.current!.scrollTop
@@ -124,15 +131,29 @@ export function PresetDialog({
     setQuery("")
     setDeleteError("")
     setPreviewVisible(false)
-    setSelectedId(request.selected ?? presets[0]?.id ?? null)
+    const id = request.selected ?? presets[0]?.id ?? null
+    initialSelection.current = { id }
+    setSelectedId(id)
     request.opener.focus()
     dialog.showModal()
-    search.current!.focus()
+    // search.current!.focus()
     return () => {
       dialog.close()
       request.opener.focus()
     }
   }, [request])
+
+  useLayoutEffect(() => {
+    if (
+      !request.open ||
+      !initialSelection.current ||
+      query ||
+      selectedId !== initialSelection.current.id
+    )
+      return
+    list.current?.querySelector('[data-selected="true"]')?.scrollIntoView({ block: "nearest" })
+    initialSelection.current = null
+  }, [request, selectedId, query])
 
   useEffect(() => {
     if (!request.open || !selected) return
@@ -222,6 +243,7 @@ export function PresetDialog({
           aria-label="프리셋 선택 닫기"
           disabled={deleting}
           onClick={dismiss}
+          autoFocus={true}
         >
           <X size={18} />
         </button>
@@ -237,8 +259,8 @@ export function PresetDialog({
             onInput={(event) => setQuery(event.currentTarget.value)}
           />
           <div class="ruricon-preset-list-heading">
-            <span>내 프리셋</span>
-            <span>즐겨찾기 우선</span>
+            <span>아이콘을 클릭해 미리보기</span>
+            {/* <span>즐겨찾기 우선</span> */}
           </div>
           <div ref={list} class="ruricon-preset-list">
             {filtered.map((preset) => {
@@ -253,13 +275,25 @@ export function PresetDialog({
                 >
                   <button
                     type="button"
-                    class="ruricon-preset-option"
-                    aria-label={`${preset.title}${hiddenPresetIds.includes(preset.id) ? " (숨김)" : ""} 선택`}
+                    class="ruricon-preset-preview"
+                    aria-label={`${preset.title} ${location.hostname === mobileDomain ? "미리보기" : "선택"}`}
                     aria-pressed={preset.id === selectedId}
                     disabled={deleting}
-                    onClick={() => setSelectedId(preset.id)}
+                    onClick={() => {
+                      setSelectedId(preset.id)
+                      setPreviewVisible(true)
+                    }}
                   >
                     <PresetLabel preset={preset} text="" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ruricon-preset-option"
+                    aria-label={`${preset.title}${hiddenPresetIds.includes(preset.id) ? " (숨김)" : ""} 적용`}
+                    aria-pressed={preset.id === selectedId}
+                    disabled={deleting || hiddenPresetIds.includes(preset.id)}
+                    onClick={() => applyPreset(preset)}
+                  >
                     <span class="ruricon-preset-row-label">
                       <span class="ruricon-preset-title">{preset.title}</span>
                       <span class="ruricon-preset-count">
@@ -394,10 +428,7 @@ export function PresetDialog({
           class="ruricon-preset-apply"
           disabled={!selected || selectedIsHidden || deleting}
           onClick={() => {
-            if (selected && !selectedIsHidden) {
-              dismiss()
-              request.choose(selected)
-            }
+            if (selected) applyPreset(selected)
           }}
         >
           적용

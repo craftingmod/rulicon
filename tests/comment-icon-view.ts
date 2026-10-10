@@ -16,7 +16,7 @@ function assert(value: unknown, message: string): asserts value {
   if (!value) throw new Error(message)
 }
 const requests: string[] = []
-const iconSize = location.hostname === "m.ruliweb.com" ? 70 : 100
+const iconSize = location.hostname === "m.ruliweb.com" ? 64 : 80
 const source = (id: number, index: number) =>
   `https://example.com/${id}/${index}.${id === 5033 && index === 1 ? "mp4" : "png"}?icon=${id}`
 const nativeSource = (id: number, index: number) => source(id, index).split("?")[0]
@@ -225,7 +225,6 @@ async function choose(name: string, parent: ParentNode = document.querySelector(
     search.dispatchEvent(new Event("input"))
   })
   click("dialog .ruricon-preset-option")
-  click("dialog .ruricon-preset-apply")
   await tick()
 }
 function enableEditMode(parent: ParentNode) {
@@ -235,6 +234,10 @@ function enableEditMode(parent: ParentNode) {
   click(".ruricon-icon-tabs button:first-child", parent)
 }
 async function checkPresetDialog(comment: HTMLElement) {
+  assert(
+    comment.querySelector(".ruricon-preset-select .ruricon-preset-label")!.textContent === "냥냥",
+    "Preset selector keeps only the collection title",
+  )
   const presets = await loadPresets()
   const native = presets.find((preset) => preset.id === 5033)!
   const master = presets.find((preset) => preset.id === 920)!
@@ -352,7 +355,14 @@ async function checkPresetDialog(comment: HTMLElement) {
     presetList.getBoundingClientRect().height === listHeight,
     "Filtering to one card preserves list height",
   )
-  click(".ruricon-preset-option", modal)
+  click(".ruricon-preset-preview", modal)
+  assert(
+    modal.open &&
+      getComputedStyle(detail).visibility === "visible" &&
+      comment.querySelector(".ruricon-preset-select")!.textContent!.includes("냥냥"),
+    "Thumbnail selects and shows preview without applying the preset",
+  )
+  if (vertical) click(".ruricon-preset-preview-toggle", modal)
   await waitFor(() => modal.querySelectorAll(".ruricon-preset-preview-grid img").length === 50)
   assert(
     [...modal.querySelectorAll<HTMLImageElement>(".ruricon-preset-preview-grid img")].every(
@@ -374,7 +384,7 @@ async function checkPresetDialog(comment: HTMLElement) {
       modal.getBoundingClientRect().width === 1600,
       "Wide viewport uses the 1600px dialog width",
     )
-  const thumbnail = modal.querySelector<HTMLImageElement>(".ruricon-preset-option img")!
+  const thumbnail = modal.querySelector<HTMLImageElement>(".ruricon-preset-preview img")!
   const previewIcon = modal.querySelector<HTMLImageElement>(".ruricon-preset-preview-grid img")!
   const thumbnailWidth = thumbnail.getBoundingClientRect().width
   if (vertical) click(".ruricon-preset-preview-toggle", modal)
@@ -456,8 +466,9 @@ async function checkPresetDialog(comment: HTMLElement) {
   void act(() => {
     hangulSearch.dispatchEvent(new Event("input"))
   })
-  click(".ruricon-preset-title", modal)
+  click(".ruricon-preset-preview", modal)
   await waitFor(() => releaseSlow !== null)
+  click(".ruricon-preset-preview-toggle", modal)
   if (!vertical) {
     const requestCount = requests.length
     modal.style.width = "969px"
@@ -489,7 +500,7 @@ async function checkPresetDialog(comment: HTMLElement) {
   void act(() => {
     hangulSearch.dispatchEvent(new Event("input"))
   })
-  click(".ruricon-preset-option", modal)
+  click(".ruricon-preset-preview", modal)
   await waitFor(
     () =>
       modal.querySelectorAll(".ruricon-preset-preview-grid img, .ruricon-preset-preview-grid video")
@@ -512,7 +523,7 @@ async function checkPresetDialog(comment: HTMLElement) {
   void act(() => {
     hangulSearch.dispatchEvent(new Event("input"))
   })
-  click(".ruricon-preset-option", modal)
+  click(".ruricon-preset-preview", modal)
   await waitFor(() => Boolean(modal.querySelector(".ruricon-preset-detail button")))
   assert(
     modal.querySelector(".ruricon-preset-status")!.textContent!.includes("metadata"),
@@ -529,13 +540,14 @@ async function checkPresetDialog(comment: HTMLElement) {
   void act(() => {
     hangulSearch.dispatchEvent(new Event("input"))
   })
-  click(".ruricon-preset-option", modal)
+  click(".ruricon-preset-preview", modal)
   await waitFor(
     () =>
       modal.querySelectorAll(".ruricon-preset-preview-grid img, .ruricon-preset-preview-grid video")
         .length === 50,
   )
   const iconPreferences = localStorage.getItem("ruricon:icon-view:v1")
+  click(".ruricon-preset-preview-toggle", modal)
   hangulSearch.value = ""
   void act(() => {
     hangulSearch.dispatchEvent(new Event("input"))
@@ -698,6 +710,8 @@ async function checkPresetDialog(comment: HTMLElement) {
     "Repeated preset toggles never write icon preferences",
   )
   if (vertical) click(".ruricon-preset-preview-toggle", modal)
+  list.style.maxHeight = "120px"
+  list.scrollTop = list.scrollHeight
   click(".ruricon-preset-heading button", modal)
   await tick()
   assert(
@@ -710,6 +724,14 @@ async function checkPresetDialog(comment: HTMLElement) {
   )
   click(".ruricon-preset-select", comment)
   await tick()
+  const currentRow = modal.querySelector<HTMLElement>('.ruricon-preset-row[data-selected="true"]')!
+  assert(
+    currentRow.querySelector(".ruricon-preset-title")!.textContent!.includes("냥냥") &&
+      currentRow.getBoundingClientRect().top >= list.getBoundingClientRect().top - 1 &&
+      currentRow.getBoundingClientRect().bottom <= list.getBoundingClientRect().bottom + 1,
+    "Reopening selects the applied preset and scrolls its card into view",
+  )
+  list.style.removeProperty("max-height")
   assert(
     getComputedStyle(detail).visibility === (vertical ? "hidden" : "visible"),
     "Reopening resets the vertical layout to the list",
@@ -719,7 +741,7 @@ async function checkPresetDialog(comment: HTMLElement) {
     "Reopening keeps preset favorites first",
   )
   const nativeRow = modal.querySelector<HTMLElement>(".ruricon-preset-row")!
-  click(".ruricon-preset-count", nativeRow)
+  click(".ruricon-preset-preview", nativeRow)
   assert(
     modal.open && comment.querySelector(".ruricon-preset-select")!.textContent!.includes("냥냥"),
     "Preview selection waits for Apply",
@@ -729,6 +751,16 @@ async function checkPresetDialog(comment: HTMLElement) {
   assert(
     !modal.open && comment.querySelector(".ruricon-preset-select")!.textContent!.includes("Native"),
     "Apply selects the previewed preset",
+  )
+  click(".ruricon-preset-select", comment)
+  const masterRow = [...modal.querySelectorAll<HTMLElement>(".ruricon-preset-row")].find((row) =>
+    row.querySelector(".ruricon-preset-title")!.textContent!.includes("냥냥"),
+  )!
+  click(".ruricon-preset-title", masterRow)
+  await tick()
+  assert(
+    !modal.open && comment.querySelector(".ruricon-preset-select")!.textContent!.includes("냥냥"),
+    "Card title immediately applies without the Apply button",
   )
   void act(cleanup)
   const preferences = JSON.parse(localStorage.getItem("ruricon:icon-view:v1")!)
@@ -874,7 +906,7 @@ async function checkPresetDialog(comment: HTMLElement) {
     const adRow = [...deletionDialog.querySelectorAll<HTMLElement>(".ruricon-preset-row")].find(
       (row) => row.querySelector(".ruricon-preset-title")!.textContent === ad,
     )!
-    click(".ruricon-preset-option", adRow)
+    click(".ruricon-preset-preview", adRow)
     assert(
       deletionDialog.querySelector(".ruricon-preset-hide")!.textContent === "숨기기" &&
         !deletionDialog.querySelector(".ruricon-preset-delete"),
@@ -944,7 +976,7 @@ async function checkPresetDialog(comment: HTMLElement) {
   const restoreRow = [...restoreDialog.querySelectorAll<HTMLElement>(".ruricon-preset-row")].find(
     (row) => row.querySelector(".ruricon-preset-title")!.textContent === "AD1",
   )!
-  click(".ruricon-preset-option", restoreRow)
+  click(".ruricon-preset-preview", restoreRow)
   assert(
     restoreDialog.querySelector(".ruricon-preset-hide")!.textContent === "복원",
     "Muted card remains selectable for restoring",
@@ -1056,7 +1088,7 @@ async function checkModalScrollLock() {
       assert(dialog.open, "Clicks inside the dialog do not cancel")
       const savedBeforeBackdrop = localStorage.getItem("ruricon:icon-view:v1")
       const presetBeforeBackdrop = comment.querySelector(".ruricon-preset-select")!.textContent
-      click(".ruricon-preset-row:last-child .ruricon-preset-option", dialog)
+      click(".ruricon-preset-row:last-child .ruricon-preset-preview", dialog)
       void act(() => {
         dialog.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 0, clientY: 0 }))
       })
@@ -1536,6 +1568,10 @@ async function check() {
     comment.querySelector(".ruricon-preset-select")!.textContent!.includes("냥냥"),
     "Metadata set name",
   )
+  assert(
+    comment.querySelector(".ruricon-preset-select .ruricon-preset-label")!.textContent === "냥냥",
+    "Preset selector displays the collection title without an icon count",
+  )
   const selectedThumbnail = comment.querySelector<HTMLImageElement>(
     ".ruricon-preset-select > .ruricon-preset-thumbnail",
   )!
@@ -1869,7 +1905,7 @@ async function check() {
   assert(modal.open, "Native dialog opens")
   const presetRow = modal.querySelector<HTMLElement>(".ruricon-preset-row")!
   assert(
-    presetRow.querySelector(".ruricon-preset-option > .ruricon-preset-thumbnail"),
+    presetRow.querySelector(".ruricon-preset-preview > .ruricon-preset-thumbnail"),
     "Preset row thumbnail precedes label",
   )
   assert(getComputedStyle(presetRow).display === "flex", "Preset thumbnail and label share a row")
