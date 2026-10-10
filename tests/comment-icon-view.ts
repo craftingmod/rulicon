@@ -1257,6 +1257,92 @@ async function check() {
             ?.getAttribute("aria-pressed") === "true",
       )
       const view = container.querySelector(".ruricon-icon-view")!
+      if (!mountedView) {
+        const toggle = container.querySelector<HTMLButtonElement>(".ruricon-icon-expand")!
+        const toolbar = container.querySelector<HTMLElement>(".ruricon-icon-toolbar")!
+        const grid = container.querySelector<HTMLElement>(".ruricon-icon-grid")!
+        assert(
+          toggle.previousElementSibling?.classList.contains("ruricon-preset-select"),
+          "Collapse toggle follows the preset selector",
+        )
+        assert(
+          toggle.getAttribute("aria-expanded") === "false" &&
+            getComputedStyle(toolbar).display === "none" &&
+            getComputedStyle(grid).display === "none",
+          "Toolbar and icon list start collapsed",
+        )
+        await waitFor(() => view.getAttribute("aria-busy") === "false")
+        await choose("Native", container)
+        await waitFor(() => view.getAttribute("aria-busy") === "false")
+        await waitFor(() => grid.querySelector("img") !== null)
+        const scroller = grid.querySelector('[data-testid="virtuoso-scroller"]')!
+        const image = grid.querySelector<HTMLImageElement>("img")!
+        const oldSource = image.src
+        await choose("Slow", container)
+        await waitFor(() => releaseSlow !== null)
+        assert(
+          view.getAttribute("aria-busy") === "true" &&
+            !container.querySelector('[role="status"]')!.textContent &&
+            grid.querySelector('[data-testid="virtuoso-scroller"]') === scroller &&
+            grid.querySelector("img") === image &&
+            image.src === oldSource,
+          "Pending preset transition preserves grid DOM and hides loading status",
+        )
+        releaseSlow!()
+        await waitFor(() => view.getAttribute("aria-busy") === "false")
+        assert(
+          grid.querySelector('[data-testid="virtuoso-scroller"]') === scroller &&
+            grid.querySelector("img") === image &&
+            image.src === source(940, 0),
+          "Completed preset transition updates the existing image DOM",
+        )
+        await choose("Broken", container)
+        await waitFor(() => view.getAttribute("aria-busy") === "false")
+        assert(
+          container.querySelector('[role="status"]')!.textContent!.includes("metadata"),
+          "Preset errors remain visible",
+        )
+        await choose("Native", container)
+        await waitFor(() => grid.classList.contains("ruricon-icon-virtual"))
+        await waitFor(() => view.getAttribute("aria-busy") === "false")
+        const saved = localStorage.getItem("ruricon:icon-view:v1")
+        assert(
+          toggle.getAttribute("aria-expanded") === "true" && !toolbar.hidden && !grid.hidden,
+          "Preset dialog selection expands toolbar and icon list",
+        )
+        click(".ruricon-icon-expand", container)
+        assert(
+          toolbar.hidden && grid.hidden && getComputedStyle(grid).display === "none",
+          "Toggle hides the loaded virtual grid again",
+        )
+        assert(
+          localStorage.getItem("ruricon:icon-view:v1") === saved,
+          "Collapse state is not persisted",
+        )
+        const shortcutRequests = () =>
+          requests.filter((url) => new URL(url).searchParams.get("id") === "5033").length
+        const beforeShortcutRequests = shortcutRequests()
+        click('.ruricon-preset-shortcut[data-preset-id="5033"]', container)
+        await tick()
+        assert(
+          toggle.getAttribute("aria-expanded") === "true" && !toolbar.hidden && !grid.hidden,
+          "Selected preset shortcut expands toolbar and icon list",
+        )
+        click('.ruricon-preset-shortcut[data-preset-id="5033"]', container)
+        await tick()
+        assert(
+          toolbar.hidden && grid.hidden && getComputedStyle(grid).display === "none",
+          "Selected preset shortcut collapses toolbar and icon list",
+        )
+        assert(
+          shortcutRequests() === beforeShortcutRequests,
+          "Selected preset shortcut does not reload its images",
+        )
+        assert(
+          localStorage.getItem("ruricon:icon-view:v1") === saved,
+          "Selected preset shortcut does not persist toggle state",
+        )
+      }
       if (mountedView) assert(view === mountedView, "Toggling preserves the mounted view")
       mountedView = view
     }

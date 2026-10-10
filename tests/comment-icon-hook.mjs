@@ -7,6 +7,7 @@ import { join, resolve, relative } from "node:path"
 import { chromeExec } from "../entrypoints/lib/constants.ts"
 
 const cacheTest = process.argv.includes("--cache")
+const liveLayoutTest = cacheTest || process.argv.includes("--native-buttons")
 const port = 5187
 const url = process.argv.includes("--cache")
   ? `http://127.0.0.1:${port}/tests/icon-cache.html`
@@ -63,7 +64,7 @@ try {
         "--no-proxy-server",
         "--host-resolver-rules=MAP m.ruliweb.com 127.0.0.1",
         `--user-data-dir=${profile}`,
-        ...(cacheTest
+        ...(liveLayoutTest
           ? ["--remote-debugging-port=5188"]
           : ["--virtual-time-budget=12000", "--dump-dom"]),
         testUrl,
@@ -79,7 +80,7 @@ try {
       errors += chunk
     })
     const timer = setTimeout(() => browser.kill(), 45000)
-    if (cacheTest) {
+    if (liveLayoutTest) {
       let page
       for (let attempt = 0; attempt < 100; attempt++) {
         try {

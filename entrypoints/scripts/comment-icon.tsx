@@ -2,8 +2,10 @@ import {
   ArrowUp,
   ArrowUpToLine,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Clock3,
   ExternalLinkIcon,
   Images,
@@ -38,6 +40,7 @@ import {
   type DialogRequest,
   type DialogState,
 } from "../../components/preset-dialog.tsx"
+import { useScrollSeek } from "../lib/constants.ts"
 import { cx } from "../lib/cx.ts"
 import { iconGridPage } from "../lib/icon-grid.ts"
 import {
@@ -53,7 +56,6 @@ import {
 } from "../lib/icon-view.ts"
 import { mobileDomain, pcDomain } from "../lib/ruli-constants.ts"
 import { readIconStoage } from "../lib/ruli-utils.ts"
-import { useScrollSeek } from "../lib/constants.ts"
 
 import "./comment-icon.css"
 
@@ -501,6 +503,7 @@ function IconView({
   const [selected, setSelected] = useState<Preset | null>(null)
   const [collection, setCollection] = useState<IconCollection | null>(null)
   const [mode, setMode] = useState<Mode>("all")
+  const [expanded, setExpanded] = useState(false)
   const [imagePreset, setImagePreset] = useState<string[]>([])
   const { editMode } = saved
   const [selection, setSelection] = useState(new Set<string>())
@@ -513,7 +516,7 @@ function IconView({
     busy: boolean
     message: string
     retry: (() => Promise<void>) | null
-  }>({ busy: true, message: "불러오는 중…", retry: null })
+  }>({ busy: true, message: "", retry: null })
   const revision = useRef(0)
   const alive = useRef(true)
   const appliedMode = useRef<typeof requestedMode>(undefined)
@@ -612,7 +615,7 @@ function IconView({
     again: () => Promise<void>,
   ): Promise<boolean> {
     const token = ++revision.current
-    setLoading({ busy: true, message: "불러오는 중…", retry: null })
+    setLoading({ busy: true, message: "", retry: null })
     try {
       const result = await action((previous) => {
         if (alive.current && token === revision.current) apply(previous)
@@ -637,7 +640,6 @@ function IconView({
     setMode("all")
     setPageIndex(0)
     setCollection(null)
-    setAllImages([])
     await request<{ collection: IconCollection; images: string[] }>(
       async (previous) => {
         const collection = await loadCollection(preset)
@@ -817,7 +819,7 @@ function IconView({
     () => (
       <VirtuosoGrid
         ref={gridRef}
-        key={`${mode}:${selected?.id}`}
+        key={mode}
         style={{ height: "100%" }}
         data={orderedImages}
         components={gridComponents}
@@ -826,7 +828,7 @@ function IconView({
           clearTimeout(pageJumpTimeout.current)
           if (!scrolling) pageJump.current = false
         }}
-        computeItemKey={(position) => itemKeys[position]}
+        computeItemKey={(position) => (mode === "all" ? position : itemKeys[position])}
         listClassName="ruricon-icon-virtual-list"
         stateChanged={mode === "all" ? (state) => setPageIndex(iconGridPage(state)) : undefined}
         itemContent={(position, src) => (
@@ -877,43 +879,65 @@ function IconView({
         selected={selected?.id ?? null}
         visible={visible}
         choose={(preset) => {
+          if (preset.id === selected?.id) {
+            setExpanded((current) => !current)
+            return
+          }
+          setExpanded(true)
           void selectPreset(preset)
         }}
       />
-      <button
-        ref={select}
-        type="button"
-        class="ruricon-preset-select"
-        disabled={!ready}
-        onClick={() =>
-          choosePreset({
-            presets: loadedPresets,
-            selected: selected?.id ?? null,
-            opener: select.current!,
-            choose: (preset) => {
-              void selectPreset(preset)
-            },
-          })
-        }
-      >
-        <PresetLabel
-          preset={selected}
-          text={
-            !ready
-              ? "프리셋 불러오는 중…"
-              : collection
-                ? `${collection.title} - ${allImages.length}개`
-                : (selected?.title ?? "프리셋 선택")
+      <div class="ruricon-preset-heading2">
+        <button
+          ref={select}
+          type="button"
+          class="ruricon-preset-select"
+          disabled={!ready}
+          onClick={() =>
+            choosePreset({
+              presets: loadedPresets,
+              selected: selected?.id ?? null,
+              opener: select.current!,
+              choose: (preset) => {
+                setExpanded(true)
+                void selectPreset(preset)
+              },
+            })
           }
-        />
-        <ChevronRight
-          class="ruricon-preset-select-arrow"
-          size={20}
-          aria-hidden="true"
-          focusable="false"
-        />
-      </button>
-      <div class="ruricon-icon-toolbar">
+        >
+          <PresetLabel
+            preset={selected}
+            text={
+              !ready
+                ? "프리셋 불러오는 중…"
+                : collection
+                  ? `${collection.title} - ${allImages.length}개`
+                  : (selected?.title ?? "프리셋 선택")
+            }
+          />
+          <ChevronRight
+            class="ruricon-preset-select-arrow"
+            size={20}
+            aria-hidden="true"
+            focusable="false"
+          />
+        </button>
+        <button
+          type="button"
+          class="ruricon-icon-expand"
+          aria-label={expanded ? "아이콘 목록 접기" : "아이콘 목록 펼치기"}
+          title={expanded ? "아이콘 목록 접기" : "아이콘 목록 펼치기"}
+          aria-expanded={expanded}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? (
+            <ChevronUp size={20} aria-hidden="true" focusable="false" />
+          ) : (
+            <ChevronDown size={20} aria-hidden="true" focusable="false" />
+          )}
+        </button>
+      </div>
+      <div class="ruricon-icon-toolbar" hidden={!expanded}>
         <div class="ruricon-icon-tabs">
           {(
             [
@@ -1049,6 +1073,7 @@ function IconView({
           mode !== "imagePreset" && images.length > 0 && "ruricon-icon-virtual",
         )}
         aria-label="아이콘 목록"
+        hidden={!expanded}
       >
         {mode !== "imagePreset"
           ? images.length > 0 && virtualGrid
@@ -1071,7 +1096,7 @@ function IconView({
         )}
       </div>
       {selectionMode && (
-        <div class="ruricon-icon-selection-actions">
+        <div class="ruricon-icon-selection-actions" hidden={!expanded}>
           <button
             type="button"
             class={cx("ruricon-icon-action", "ruricon-icon-select-all")}
