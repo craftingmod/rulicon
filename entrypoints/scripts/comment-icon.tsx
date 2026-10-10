@@ -606,8 +606,8 @@ function IconView({
   useEffect(() => {
     if (!requestedMode || !ready || loading.busy || appliedMode.current === requestedMode) return
     appliedMode.current = requestedMode
-    changeMode(requestedMode.mode)
-  }, [requestedMode, ready, loading.busy])
+    if (requestedMode.mode !== mode) changeMode(requestedMode.mode)
+  }, [requestedMode, ready, loading.busy, mode])
 
   async function request<T>(
     action: (previous: (result: T) => void) => Promise<T>,

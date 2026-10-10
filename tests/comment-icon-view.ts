@@ -193,6 +193,8 @@ window.fetch = async (input, options) => {
 localStorage.removeItem("ruricon:icon-view:v1")
 localStorage.removeItem("ruricon:preset-favorites:v1")
 localStorage.removeItem("ruricon:hidden-ad-presets:v1")
+if (location.search === "?native-buttons")
+  localStorage.setItem("ruricon:icon-view:v1", JSON.stringify({ presetId: 5033 }))
 const editorFixture = document.createElement("div")
 const originalEditorCommentIcon = window.app.comment_icon!
 if (location.search === "?editor") {
@@ -1288,9 +1290,14 @@ async function check() {
           assert(strip.scrollLeft > 0, "Mobile shortcuts still scroll to later buttons")
           strip.scrollLeft = 0
         }
-        await choose("Native", container)
+        click(".ruricon-icon-expand", container)
         await waitFor(() => view.getAttribute("aria-busy") === "false")
         await waitFor(() => grid.querySelector("img") !== null)
+        assert(
+          grid.querySelector<HTMLImageElement>("img")!.src === source(5033, 0) &&
+            container.querySelector(".ruricon-preset-select")!.textContent!.includes("Native"),
+          "First expansion displays the saved preset without choosing it again",
+        )
         const scroller = grid.querySelector('[data-testid="virtuoso-scroller"]')!
         const image = grid.querySelector<HTMLImageElement>("img")!
         const oldSource = image.src
