@@ -243,8 +243,8 @@
 /* 터치 환경 = 가로 스크롤 편함*/
 @media (pointer: coarse) {
   .ruricon-icon-pages {
-      flex-wrap: nowrap;
-      overflow-x: auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 }
 

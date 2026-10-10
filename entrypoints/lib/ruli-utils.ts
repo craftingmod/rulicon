@@ -69,9 +69,9 @@ export async function readArticle(boardId: number, articleId: number, isMobile =
   const domParser = new DOMParser()
   const dom = domParser.parseFromString(await viewRequest.text(), "text/html")
 
-  const selector = isMobile ?
-    ".board_main > .board_main_view article > div:first-of-type" :
-    ".board_main > .board_main_view > .view_content > article > div"
+  const selector = isMobile
+    ? ".board_main > .board_main_view article > div:first-of-type"
+    : ".board_main > .board_main_view > .view_content > article > div"
 
   const contentDiv = dom.querySelector(selector)
   if (contentDiv == null) {

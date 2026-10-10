@@ -23,7 +23,7 @@ export const splitNum = 96
 
 /**
  * Enable or disable scroll seek
- * 
+ *
  * may have a issue blinking when enabled.
  */
 export const useScrollSeek = false
