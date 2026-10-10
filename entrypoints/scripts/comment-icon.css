@@ -4,7 +4,7 @@
   --gap-md: 8px;
   --gap-sm: 4px;
   --gap-xs: 2px;
-  --grid-height: min(40svh, calc(var(--ruricon-icon-size) * 4));
+  --grid-height: min(40svh, calc(var(--ruricon-icon-size) * 5));
   --btn-height: 36px;
 }
 
@@ -40,7 +40,7 @@
 .ruricon-icon-view button,
 .ruricon-preset-manage,
 .ruricon-preset-dialog button {
-  min-height: 44px;
+  min-height: var(--btn-height);
   border: 1px solid #aaa6;
   border-radius: 6px;
   background: transparent;
@@ -367,15 +367,19 @@
   box-sizing: border-box;
   height: 100%;
   aspect-ratio: 1/1;
-  padding: var(--gap-sm);
+  padding: var(--gap-xs);
 
   object-fit: contain;
   margin: 0;
 }
 .ruricon-preset-label {
   min-width: 0;
-  overflow-wrap: anywhere;
+  /* overflow-wrap: anywhere; */
   font-size: small;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .common_write_wrapper :is(img, video).icon_preview {
