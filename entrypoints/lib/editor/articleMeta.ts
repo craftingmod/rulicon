@@ -146,7 +146,7 @@ export function compileMain(html: string, state: IconSetState) {
   heading.textContent = "😙 아이콘 묶음 · 읽기 전용"
   const pages = document.createElement("div")
   pages.dataset.meta = "ruricon-pages"
-  pages.setAttribute("style", "display:flex;align-items:center;gap:10px;margin:12px 0")
+  pages.setAttribute("style", "display:flex;align-items:center;gap:10px;margin:12px 0;flex-wrap:wrap")
   pages.textContent = "페이지 "
   for (const slave of state.slaves) {
     if (slave.articleId === null) continue
