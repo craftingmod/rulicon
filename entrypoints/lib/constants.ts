@@ -21,3 +21,9 @@ export const gridStyle = `display: grid; grid-template-columns: repeat(8, 1fr); 
 
 export const splitNum = 96
 
+/**
+ * Enable or disable scroll seek
+ * 
+ * may have a issue blinking when enabled.
+ */
+export const useScrollSeek = false

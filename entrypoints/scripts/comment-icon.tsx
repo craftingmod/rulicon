@@ -53,6 +53,7 @@ import {
 } from "../lib/icon-view.ts"
 import { mobileDomain, pcDomain } from "../lib/ruli-constants.ts"
 import { readIconStoage } from "../lib/ruli-utils.ts"
+import { useScrollSeek } from "../lib/constants.ts"
 
 import "./comment-icon.css"
 
@@ -820,7 +821,7 @@ function IconView({
         style={{ height: "100%" }}
         data={orderedImages}
         components={gridComponents}
-        scrollSeekConfiguration={scrollSeekConfiguration}
+        scrollSeekConfiguration={useScrollSeek ? scrollSeekConfiguration : false}
         isScrolling={(scrolling) => {
           clearTimeout(pageJumpTimeout.current)
           if (!scrolling) pageJump.current = false
