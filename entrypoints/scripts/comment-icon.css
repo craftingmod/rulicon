@@ -1,21 +1,34 @@
 .ruricon-icon-view,
 .ruricon-preset-dialog {
-  --ruricon-icon-size: 100px;
+  --ruricon-icon-size: 80px;
+  --gap-md: 8px;
+  --gap-sm: 4px;
+  --gap-xs: 2px;
+  --grid-height: min(40svh, calc(var(--ruricon-icon-size) * 4));
+  --btn-height: 36px;
 }
+
+.ruricon-icon-view[data-mobile="true"],
+.ruricon-preset-dialog[data-mobile="true"] {
+  --ruricon-icon-size: 64px;
+}
+
 .ruricon-icon-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+
   container-type: inline-size;
   box-sizing: border-box;
-  padding: 4px 12px 12px;
+  padding: var(--gap-sm) var(--gap-md);
+  margin: var(--gap-sm);
   border: 1px solid #aaa6;
   border-radius: 10px;
   background: Canvas;
   color: CanvasText;
   font: 14px/1.5 sans-serif;
 }
-.ruricon-icon-view[data-mobile="true"],
-.ruricon-preset-dialog[data-mobile="true"] {
-  --ruricon-icon-size: 70px;
-}
+
 .ruricon-icon-view button,
 .ruricon-preset-manage,
 .ruricon-preset-dialog button,
@@ -59,8 +72,8 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  margin: 0;
-  padding: 8px;
+  height: var(--btn-height);
+  padding: 0 var(--gap-sm);
   text-align: left;
 }
 .ruricon-preset-select-arrow {
@@ -70,23 +83,22 @@
 .ruricon-icon-tabs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap-md);
 }
 .ruricon-icon-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 24px;
-  margin: 10px 0;
+  gap: var(--gap-xs) var(--gap-sm);
 }
 .ruricon-icon-tabs {
-  gap: 4px;
+  gap: var(--gap-sm);
   flex-shrink: 0;
 }
 .ruricon-icon-view .ruricon-icon-tabs button {
   flex: 1;
-  min-height: 36px;
+  min-height: var(--btn-height);
   /* padding: 0 12px; */
   aspect-ratio: 1/1;
   border: 0;
@@ -103,7 +115,7 @@
 .ruricon-icon-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gap-md);
   margin-left: auto;
 }
 .ruricon-icon-view .ruricon-icon-action {
@@ -111,8 +123,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-height: 36px;
-  gap: 6px;
+  min-height: var(--btn-height);
+  gap: var(--gap-sm);
   padding: 0 12px;
   white-space: nowrap;
 }
@@ -134,8 +146,7 @@
 .ruricon-preset-shortcuts {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 10px;
+  gap: var(--gap-sm);
 }
 .ruricon-preset-shortcuts[hidden],
 .ruricon-icon-pages[hidden] {
@@ -145,9 +156,9 @@
   display: flex;
   flex: 1;
   min-width: 0;
-  gap: 6px;
+  gap: var(--gap-sm);
   overflow: hidden;
-  padding: 3px 0;
+  padding: 2px 0;
   justify-content: center;
 }
 .ruricon-preset-strip[data-mobile="true"] {
@@ -196,11 +207,19 @@
   flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
-  gap: 5px;
-  padding: 2px;
+  gap: var(--gap-sm);
+  padding: var(--gap-xs) var(--gap-sm);
   border-radius: 10px;
   background: rgba(130, 130, 130, 0.033);
 }
+/* 터치 환경 = 가로 스크롤 편함*/
+@media (pointer: coarse) {
+  .ruricon-icon-pages {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+  }
+}
+
 .ruricon-icon-view .ruricon-icon-pages button {
   flex: 0 0 32px;
   width: 32px;
@@ -213,6 +232,9 @@
   background: #8882;
   border-color: transparent;
 }
+.ruricon-icon-view div[role="status"]:empty {
+  display: none;
+}
 .ruricon-icon-grid,
 .ruricon-icon-virtual-list {
   display: grid;
@@ -221,7 +243,7 @@
   gap: 5px;
 }
 .ruricon-icon-grid {
-  max-height: min(50dvh, 480px);
+  max-height: var(--grid-height);
 
   overflow-y: auto;
   overflow-anchor: none;
@@ -229,13 +251,14 @@
   scrollbar-gutter: stable;
   scrollbar-width: thin;
 
-  padding: 3px;
+  padding: 0;
   justify-content: start;
 }
 .ruricon-icon-grid.ruricon-icon-virtual {
   display: block;
-  height: min(50dvh, 480px);
+  height: var(--grid-height);
   overflow: hidden;
+  scrollbar-gutter: auto;
 }
 .ruricon-icon-seek-placeholder {
   box-sizing: border-box;
@@ -258,8 +281,8 @@
 .ruricon-icon-selection-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--gap-md);
+  margin-top: var(--gap-md);
 }
 .ruricon-icon-selected {
   position: absolute;
@@ -341,15 +364,18 @@
   margin: auto;
 }
 .ruricon-preset-select .ruricon-preset-thumbnail {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  box-sizing: border-box;
+  height: 100%;
+  aspect-ratio: 1/1;
+  padding: var(--gap-sm);
+
   object-fit: contain;
   margin: 0;
 }
 .ruricon-preset-label {
   min-width: 0;
   overflow-wrap: anywhere;
+  font-size: small;
 }
 
 .common_write_wrapper :is(img, video).icon_preview {
@@ -372,6 +398,7 @@
 
 @media (max-width: 480px) {
   .ruricon-icon-view {
-    padding: 8px;
+    padding: var(--gap-sm);
+    gap: var(--gap-sm);
   }
 }

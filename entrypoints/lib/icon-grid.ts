@@ -7,6 +7,7 @@ export function iconGridPage({ scrollTop, viewport, item, gap }: GridStateSnapsh
     1,
     Math.floor((viewport.width + gap.column) / (Math.floor(item.width) + gap.column)),
   )
-  const row = Math.floor((Math.max(0, scrollTop) + gap.row) / (item.height + gap.row))
-  return Math.floor((row * columns) / 100)
+  // Detect the row 1px early to match page jumps that preserve its top border.
+  const row = Math.floor((Math.max(0, scrollTop) + gap.row + 1) / (item.height + gap.row))
+  return Math.floor(((row + 1) * columns) / 100)
 }

@@ -667,6 +667,7 @@ function IconView({
     gridRef.current.scrollToIndex({
       index: Math.max(0, Math.min(next, pageCount - 1)) * 100,
       align: "start",
+      offset: -1,
       behavior: "auto",
     })
   }
@@ -943,7 +944,11 @@ function IconView({
             </button>
           ))}
         </div>
-        <nav class="ruricon-icon-pages" aria-label="아이콘 페이지" hidden={mode !== "all"}>
+        <nav
+          class="ruricon-icon-pages"
+          aria-label="아이콘 페이지"
+          hidden={mode !== "all" || pageCount <= 1}
+        >
           {Array.from({ length: pageCount }, (_, page) => {
             const number = page + 1
             return (
